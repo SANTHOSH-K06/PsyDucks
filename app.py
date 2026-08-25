@@ -742,44 +742,6 @@ with tab_triage:
             st.markdown(f"**RAG Vector Match Score:** `{sim_score:.4f}` ({sim_score*100:.1f}% Confidence Match)")
             st.progress(sim_score)
 
-            # Detailed LangGraph Execution Trace Node by Node - Emoji Free
-            with st.expander("Step-by-Step LangGraph Node Execution Trace", expanded=True):
-                st.markdown(f"""
-                <div class="trace-node" style="border-left-color: #0284C7;">
-                    <strong>Node 1: RAG Protocol Retriever (TF-IDF & Cosine Similarity)</strong><br>
-                    • Matched Protocol: <code>[{res['matched_protocol_id']}] {res['matched_protocol_title']}</code><br>
-                    • Guideline Category: <strong>{res['protocol_category']}</strong> (Score: <strong>{res['retrieval_score']:.4f}</strong>)<br>
-                    • Grounded Protocol Evidence: <em>"{res['protocol_evidence']}"</em>
-                </div>
-                
-                <div class="trace-node" style="border-left-color: #D97706;">
-                    <strong>Node 2: Deterministic Clinical Severity Engine</strong><br>
-                    • Evaluated Acuity Tier: <strong>{res['severity_level']}</strong><br>
-                    • Applied Safety Rule: <code>{res['rule_applied']}</code><br>
-                    • Decision Rationale: {res['severity_reasoning']}
-                </div>
-                """, unsafe_allow_html=True)
-                
-                if sev == "EMERGENCY":
-                    st.markdown(f"""
-                    <div class="trace-node" style="border-left-color: #DC2626; background: rgba(254, 242, 242, 0.9);">
-                        <strong>Node 4: Human-in-the-Loop Nurse Gate (HITL)</strong><br>
-                        • Execution Control: <strong>Automated Booking Blocked for Patient Safety</strong><br>
-                        • Queue Status: <code>{res['nurse_review_status']}</code><br>
-                        • Recommended Action: {res['nurse_action']}<br>
-                        • Clinical Audit Log: {res['nurse_notes']}
-                    </div>
-                    """, unsafe_allow_html=True)
-                else:
-                    appt = res["appointment_details"]
-                    st.markdown(f"""
-                    <div class="trace-node" style="border-left-color: #16A34A; background: rgba(240, 253, 244, 0.9);">
-                        <strong>Node 3: Automated Clinic Scheduling Tool</strong><br>
-                        • Pass Confirmation ID: <code>{appt.get('appointment_id')}</code><br>
-                        • Assigned Department: <strong>{appt.get('department')}</strong><br>
-                        • Scheduled Appointment: <strong>{appt.get('appointment_time')}</strong> ({appt.get('slot_type')})
-                    </div>
-                    """, unsafe_allow_html=True)
 
             # Output Component: Digital Pass OR Emergency Banner (No Emojis)
             if sev == "EMERGENCY":
