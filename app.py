@@ -23,7 +23,7 @@ from agent_graph import run_triage_agent, build_triage_graph
 
 # Page configuration - Clean without emojis
 st.set_page_config(
-    page_title="PulseCare AI — Smart Triage Agent",
+    page_title="PulseCare AI - Smart Triage Agent",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -230,14 +230,29 @@ st.markdown("""
         font-weight: 700 !important;
     }
 
-    /* Download Report Button */
-    .stDownloadButton > button {
-        background-color: #0F172A !important;
+    /* Download Report Button High-Visibility Gradient */
+    .stDownloadButton > button,
+    div.stDownloadButton > button,
+    [data-testid="stMain"] .stDownloadButton > button {
+        background: linear-gradient(135deg, #0D9488 0%, #059669 100%) !important;
+        color: #FFFFFF !important;
         border: none !important;
+        border-radius: 12px !important;
+        padding: 0.7rem 1.5rem !important;
+        font-weight: 700 !important;
+        font-size: 1rem !important;
+        box-shadow: 0 4px 14px rgba(13, 148, 136, 0.25) !important;
+        transition: all 0.3s ease !important;
     }
-    .stDownloadButton > button p {
+    .stDownloadButton > button *,
+    div.stDownloadButton > button *,
+    [data-testid="stMain"] .stDownloadButton > button * {
         color: #FFFFFF !important;
         font-weight: 700 !important;
+    }
+    .stDownloadButton > button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(13, 148, 136, 0.4) !important;
     }
 
     /* Target Sidebar Specifically - Clean High-Contrast Light Sidebar */
@@ -509,10 +524,25 @@ st.markdown("""
         color: #10B981 !important;
         padding: 5px 14px;
         border-radius: 6px;
-        display: inline-block;
     }
 </style>
 """, unsafe_allow_html=True)
+
+# Confirmation Modal Dialog for Exporting Triage Summary
+@st.dialog("Confirm Official Document Export")
+def confirm_download_dialog(report_text, patient_name):
+    st.markdown(f"#### Confirm Export for **{patient_name}**")
+    st.caption("You are about to download the official clinical triage record containing evaluated severity levels, matched protocols, and care plan instructions.")
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    st.download_button(
+        label="Confirm & Download TXT File",
+        data=report_text,
+        file_name=f"Triage_Report_{patient_name.replace(' ', '_')}.txt",
+        mime="text/plain",
+        use_container_width=True,
+        type="primary"
+    )
 
 
 # Session State Initialization
@@ -593,7 +623,7 @@ with st.sidebar:
 # Glassmorphic Hero Header (No Emojis)
 st.markdown("""
 <div class="hero-container">
-    <div class="hero-title">PulseCare AI — Smart Triage & Booking Agent</div>
+    <div class="hero-title">PulseCare AI - Smart Triage & Booking Agent</div>
     <div class="hero-subtitle">
         A safety-first clinical agent workflow powered by LangGraph. It retrieves evidence-based medical protocols using TF-IDF RAG, applies zero-hallucination deterministic safety rules, automates clinic scheduling for routine cases, and halts execution for human nurse review during high-risk emergencies.
     </div>
@@ -786,34 +816,45 @@ with tab_triage:
             st.info(res["llm_summary"])
             
             # Clinical Summary Download Button (No Emojis)
+            score_val = res['retrieval_score']
+            p_name_val = res['patient_name']
+            p_age_val = res['age']
+            p_sym_val = res['symptoms_text']
+            p_dur_val = res['duration_days']
+            p_sev_val = res['severity_level']
+            p_rule_val = res['rule_applied']
+            p_reas_val = res['severity_reasoning']
+            p_pid_val = res['matched_protocol_id']
+            p_ptitle_val = res['matched_protocol_title']
+            p_stat_val = res['final_status']
+            p_sum_val = res['llm_summary']
+            
+            formatted_score = f"{score_val:.4f}"
+            now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            
             report_text = f"""=====================================================
-PULSECARE AI — CLINICAL TRIAGE ASSESSMENT REPORT
-Generated: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+PULSECARE AI - CLINICAL TRIAGE ASSESSMENT REPORT
+Generated: {now_str}
 =====================================================
 PATIENT DEMOGRAPHICS
-Name              : {res['patient_name']}
-Age               : {res['age']}
-Reported Symptoms : {res['symptoms_text']} (Duration: {res['duration_days']} days)
+Name              : {p_name_val}
+Age               : {p_age_val}
+Reported Symptoms : {p_sym_val} (Duration: {p_dur_val} days)
 -----------------------------------------------------
 CLINICAL TRIAGE FINDINGS
-Assessed Severity : {res['severity_level']}
-Rule Applied      : {res['rule_applied']}
-Rule Rationale    : {res['severity_reasoning']}
-Matched Protocol  : [{res['matched_protocol_id']}] {res['matched_protocol_title']}
-RAG Match Score   : {res['retrieval_score']:.4f}
+Assessed Severity : {p_sev_val}
+Rule Applied      : {p_rule_val}
+Rule Rationale    : {p_reas_val}
+Matched Protocol  : [{p_pid_val}] {p_ptitle_val}
+RAG Match Score   : {formatted_score}
 -----------------------------------------------------
 FINAL DISPOSITION
-Status            : {res['final_status']}
-Care Plan Summary : {res['llm_summary']}
+Status            : {p_stat_val}
+Care Plan Summary : {p_sum_val}
 ====================================================="""
             
-            st.download_button(
-                label="Download Official Clinical Triage Summary (TXT)",
-                data=report_text,
-                file_name=f"Triage_Report_{res['patient_name'].replace(' ', '_')}.txt",
-                mime="text/plain",
-                use_container_width=True
-            )
+            if st.button("Download Official Clinical Triage Summary (TXT)", key="btn_open_download_modal", use_container_width=True, type="primary"):
+                confirm_download_dialog(report_text, res['patient_name'])
         else:
             st.info("Use the intake form on the left or select a 1-Click Persona Preset in the sidebar to run the agent workflow.")
 
@@ -831,6 +872,7 @@ with tab_nurse:
         st.write(f"**{len(st.session_state.nurse_queue)} Emergency Case(s) Requiring Immediate Clinician Action:**")
         
         for idx, case in enumerate(st.session_state.nurse_queue):
+            c_score_str = f"{float(case.get('score', 0.45)):.4f}"
             with st.container():
                 st.markdown(f"""
                 <div style="background:rgba(255, 255, 255, 0.85); backdrop-filter:blur(12px); border:2px solid #FCA5A5; border-left:6px solid #DC2626; border-radius:14px; padding:1.2rem; margin-bottom:1rem; box-shadow:0 4px 14px rgba(220, 38, 38, 0.08);">
@@ -839,7 +881,7 @@ with tab_nurse:
                         <span class="badge-emergency">AWAITING NURSE ACTION</span>
                     </div>
                     <p style="margin: 8px 0 4px 0; color:#1E293B !important;"><strong>Presenting Symptoms:</strong> {case['symptoms']} (Duration: {case['duration']} days)</p>
-                    <p style="margin: 4px 0; color:#1E293B !important;"><strong>Matched Protocol:</strong> {case['protocol']} (Similarity Score: {case.get('score', 0.45):.4f})</p>
+                    <p style="margin: 4px 0; color:#1E293B !important;"><strong>Matched Protocol:</strong> {case['protocol']} (Similarity Score: {c_score_str})</p>
                     <p style="margin: 4px 0; color:#64748B !important; font-size:0.88rem;"><strong>Logged Time:</strong> {case.get('time', 'Just now')}</p>
                 </div>
                 """, unsafe_allow_html=True)
@@ -963,11 +1005,11 @@ with tab_protocols:
                 elif p["category"] == "URGENT":
                     cat_badge = "badge-urgent"
                     
-                with st.expander(f"{p['id']} — {p['title']}", expanded=(len(matched_protocols) == 1)):
+                with st.expander(f"{p['id']} - {p['title']}", expanded=(len(matched_protocols) == 1)):
                     st.markdown(f"""
                     <div style="background:#FFFFFF; border:1.5px solid #CBD5E1; border-radius:12px; padding:1.2rem;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                            <h4 style="margin:0; color:#0F172A !important;">{p['id']} — {p['title']}</h4>
+                            <h4 style="margin:0; color:#0F172A !important;">{p['id']} - {p['title']}</h4>
                             <span class="{cat_badge}">{p['category']}</span>
                         </div>
                         <p style="margin:6px 0; color:#1E293B !important;"><strong>Keywords:</strong> <em>{p['keywords']}</em></p>
@@ -1064,9 +1106,9 @@ with tab_architecture:
         st.markdown("#### Clinical Safety Guarantees")
         st.markdown("""
         <div style="background:#FFFFFF; border:1.5px solid #CBD5E1; border-radius:12px; padding:1.2rem; box-shadow:0 4px 12px rgba(0,0,0,0.03);">
-            <p style="margin:6px 0; color:#0F172A !important; font-size:0.95rem;">• <strong style="color:#0F172A !important;">Zero Severity Hallucination:</strong> Severity classification is computed by deterministic Python rules.</p>
-            <p style="margin:6px 0; color:#0F172A !important; font-size:0.95rem;">• <strong style="color:#0F172A !important;">RAG Grounding:</strong> Medical summaries reference retrieved protocols as evidence.</p>
-            <p style="margin:6px 0; color:#0F172A !important; font-size:0.95rem;">• <strong style="color:#0F172A !important;">Human-in-the-Loop:</strong> Emergency red flags block auto-booking and halt execution for nurse review.</p>
-            <p style="margin:6px 0; color:#0F172A !important; font-size:0.95rem;">• <strong style="color:#0F172A !important;">Provider Resilience:</strong> Automatic fallback between Groq LLM, local Ollama, and offline deterministic template.</p>
+            <p style="margin:6px 0; color:#0F172A !important; font-size:0.95rem;">- <strong style="color:#0F172A !important;">Zero Severity Hallucination:</strong> Severity classification is computed by deterministic Python rules.</p>
+            <p style="margin:6px 0; color:#0F172A !important; font-size:0.95rem;">- <strong style="color:#0F172A !important;">RAG Grounding:</strong> Medical summaries reference retrieved protocols as evidence.</p>
+            <p style="margin:6px 0; color:#0F172A !important; font-size:0.95rem;">- <strong style="color:#0F172A !important;">Human-in-the-Loop:</strong> Emergency red flags block auto-booking and halt execution for nurse review.</p>
+            <p style="margin:6px 0; color:#0F172A !important; font-size:0.95rem;">- <strong style="color:#0F172A !important;">Provider Resilience:</strong> Automatic fallback between Groq LLM, local Ollama, and offline deterministic template.</p>
         </div>
         """, unsafe_allow_html=True)
