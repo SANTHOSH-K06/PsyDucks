@@ -42,7 +42,7 @@ st.markdown("""
         background: linear-gradient(135deg, #F0F4F8 0%, #E2E8F0 50%, #EDF2F7 100%);
     }
 
-    /* Target Main Area Headers & Text Contrast Specifically */
+    /* Universal High-Contrast Dark Slate Text Overrides */
     [data-testid="stMain"] h1, 
     [data-testid="stMain"] h2, 
     [data-testid="stMain"] h3, 
@@ -74,7 +74,8 @@ st.markdown("""
     .stTextArea label, 
     .stSlider label, 
     .stSelectbox label, 
-    div[data-testid="stWidgetLabel"] p {
+    div[data-testid="stWidgetLabel"] p,
+    div[data-testid="stWidgetLabel"] * {
         color: #0F172A !important;
         font-weight: 700 !important;
         font-size: 0.95rem !important;
@@ -90,6 +91,12 @@ st.markdown("""
         border: 1.5px solid #CBD5E1 !important;
         font-weight: 600 !important;
         border-radius: 8px !important;
+    }
+
+    /* Sliders & Dropdown Selectboxes High Contrast */
+    .stSlider *, div[data-testid="stSlider"] *, div[data-baseweb="select"] *, div[role="listbox"] * {
+        color: #0F172A !important;
+        font-weight: 600 !important;
     }
 
     /* Tab Titles & Active State Contrast */
@@ -135,13 +142,29 @@ st.markdown("""
         background-color: #F8FAFC !important;
     }
 
-    /* Alert Box & Notification Text Contrast */
-    div[data-testid="stNotification"] p, 
-    div[data-testid="stNotification"] div,
-    .stAlert p, 
-    .stAlert div {
+    /* Alert Box & Notification Text High Contrast Fix */
+    .stAlert, div[data-testid="stNotification"], div[data-baseweb="notification"] {
+        background-color: #F8FAFC !important;
+        border: 1.5px solid #CBD5E1 !important;
+        border-radius: 12px !important;
+    }
+
+    .stAlert *, div[data-testid="stNotification"] *, div[data-baseweb="notification"] * {
         color: #0F172A !important;
         font-weight: 600 !important;
+    }
+
+    /* Expanders Accordion Contrast */
+    .stExpander, .stExpander * {
+        color: #0F172A !important;
+    }
+    .stExpander details summary {
+        background-color: #F1F5F9 !important;
+        border-radius: 10px !important;
+    }
+    .stExpander details summary * {
+        color: #0F172A !important;
+        font-weight: 700 !important;
     }
 
     /* Main Area Buttons High Contrast */
@@ -166,6 +189,16 @@ st.markdown("""
     
     [data-testid="stMain"] button[kind="primary"] p,
     [data-testid="stMain"] button[type="submit"] p {
+        color: #FFFFFF !important;
+        font-weight: 700 !important;
+    }
+
+    /* Download Report Button */
+    .stDownloadButton > button {
+        background-color: #0F172A !important;
+        border: none !important;
+    }
+    .stDownloadButton > button p {
         color: #FFFFFF !important;
         font-weight: 700 !important;
     }
