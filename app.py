@@ -531,51 +531,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# Glassmorphic Metrics Banner (4 Stat Cards, No Emojis)
-m1, m2, m3, m4 = st.columns(4)
-with m1:
-    st.markdown("""
-    <div class="glass-stat-card">
-        <div class="stat-indicator indicator-green"></div>
-        <div>
-            <div class="stat-label">Agent Status</div>
-            <div class="stat-value">Active & Ready</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-with m2:
-    st.markdown("""
-    <div class="glass-stat-card">
-        <div class="stat-indicator indicator-teal"></div>
-        <div>
-            <div class="stat-label">Knowledge Base</div>
-            <div class="stat-value">6 Protocols Loaded</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-with m3:
-    st.markdown("""
-    <div class="glass-stat-card">
-        <div class="stat-indicator indicator-blue"></div>
-        <div>
-            <div class="stat-label">Workflow Engine</div>
-            <div class="stat-value">LangGraph Graph</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-with m4:
-    nurse_count = len(st.session_state.nurse_queue)
-    st.markdown(f"""
-    <div class="glass-stat-card">
-        <div class="stat-indicator {'indicator-red' if nurse_count > 0 else 'indicator-green'}"></div>
-        <div>
-            <div class="stat-label">Nurse HITL Queue</div>
-            <div class="stat-value" style="color: {'#DC2626' if nurse_count > 0 else '#10B981'} !important">{nurse_count} Pending</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-st.markdown("<br>", unsafe_allow_html=True)
 
 # Main Navigation Tabs - Emoji Free
 tab_triage, tab_nurse, tab_protocols, tab_architecture = st.tabs([
