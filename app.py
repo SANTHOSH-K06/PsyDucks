@@ -883,26 +883,99 @@ with tab_protocols:
     guideline_path = "data/clinical_triage_guidelines.txt"
     if os.path.exists(guideline_path):
         with open(guideline_path, "r", encoding="utf-8") as f:
-            content = f.read()
+            raw_content = f.read()
             
-        search_term = st.text_input("Search Protocols by Keyword (e.g. Chest Pain, Fever, Stroke, Headache)", "")
+        import re
+        raw_blocks = re.split(r'\n(?=\[PROTOCOL-\d+\])', raw_content.strip())
         
-        protocols = content.split("---------------------------------------------------------------------------")
-        
-        filtered_count = 0
-        for proto in protocols:
-            if not proto.strip():
+        parsed_protocols = []
+        for block in raw_blocks:
+            if not block.strip():
                 continue
-            if search_term.lower() in proto.lower():
-                filtered_count += 1
-                lines = [l.strip() for l in proto.strip().split("\n") if l.strip()]
-                header = lines[0] if lines else "Protocol"
-                
-                with st.expander(f"Protocol: {header}", expanded=(filtered_count == 1)):
-                    st.text(proto.strip())
+            lines = [l.strip() for l in block.strip().split("\n") if l.strip()]
+            proto_id = lines[0] if lines else "[PROTOCOL]"
+            title = ""
+            keywords = ""
+            category = "ROUTINE"
+            description = ""
+            action = ""
+            
+            for line in lines:
+                if line.startswith("Title:"):
+                    title = line.replace("Title:", "").strip()
+                elif line.startswith("Keywords:"):
+                    keywords = line.replace("Keywords:", "").strip()
+                elif line.startswith("Category:"):
+                    category = line.replace("Category:", "").strip()
+                elif line.startswith("Description:"):
+                    description = line.replace("Description:", "").strip()
+                elif line.startswith("Action:"):
+                    action = line.replace("Action:", "").strip()
                     
-        if filtered_count == 0:
-            st.warning(f"No clinical protocols found matching keyword: '{search_term}'")
+            parsed_protocols.append({
+                "id": proto_id,
+                "title": title,
+                "keywords": keywords,
+                "category": category,
+                "description": description,
+                "action": action,
+                "full_text": block.strip()
+            })
+            
+        c_search, c_filter = st.columns([3, 1])
+        with c_search:
+            search_query = st.text_input(
+                "Search Protocols by Keyword",
+                value="",
+                placeholder="e.g. Chest Pain, Fever, Stroke, Headache...",
+                key="protocol_search_input"
+            )
+        with c_filter:
+            category_filter = st.selectbox(
+                "Filter Category",
+                ["All Categories", "EMERGENCY", "URGENT", "ROUTINE"],
+                key="protocol_cat_filter"
+            )
+
+        matched_protocols = []
+        for p in parsed_protocols:
+            matches_query = (
+                not search_query.strip() or 
+                search_query.lower() in p["title"].lower() or 
+                search_query.lower() in p["keywords"].lower() or 
+                search_query.lower() in p["description"].lower() or 
+                search_query.lower() in p["id"].lower()
+            )
+            matches_cat = (category_filter == "All Categories" or p["category"].upper() == category_filter.upper())
+            
+            if matches_query and matches_cat:
+                matched_protocols.append(p)
+                
+        st.markdown(f"**Found {len(matched_protocols)} matching protocol(s):**")
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        if not matched_protocols:
+            st.warning(f"No clinical protocols found matching query: '{search_query}' in category: '{category_filter}'")
+        else:
+            for p in matched_protocols:
+                cat_badge = "badge-routine"
+                if p["category"] == "EMERGENCY":
+                    cat_badge = "badge-emergency"
+                elif p["category"] == "URGENT":
+                    cat_badge = "badge-urgent"
+                    
+                with st.expander(f"{p['id']} — {p['title']}", expanded=(len(matched_protocols) == 1)):
+                    st.markdown(f"""
+                    <div style="background:#FFFFFF; border:1.5px solid #CBD5E1; border-radius:12px; padding:1.2rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <h4 style="margin:0; color:#0F172A !important;">{p['id']} — {p['title']}</h4>
+                            <span class="{cat_badge}">{p['category']}</span>
+                        </div>
+                        <p style="margin:6px 0; color:#1E293B !important;"><strong>Keywords:</strong> <em>{p['keywords']}</em></p>
+                        <p style="margin:6px 0; color:#1E293B !important;"><strong>Clinical Description:</strong> {p['description']}</p>
+                        <p style="margin:6px 0; color:#064E3B !important;"><strong>Required Triage Action:</strong> {p['action']}</p>
+                    </div>
+                    """, unsafe_allow_html=True)
     else:
         st.error("Clinical guideline dataset not found at `data/clinical_triage_guidelines.txt`.")
 
