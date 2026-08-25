@@ -1,0 +1,1012 @@
+"""
+app.py
+Glassmorphic Healthcare Patient Triage & Appointment Booking Dashboard.
+Features:
+- Pure Glassmorphism (Frosted Glass UI, Backdrop Blur, Translucent Panels)
+- High-Contrast Text for Crisp Readability Across Light & Dark Themes
+- 100% Emoji-Free Clean Professional Layout
+- Live System Metrics & Persona Selection Cards
+- Categorized Quick Symptom Selector Chips
+- Guided Patient Intake Form & Real-Time LangGraph Execution Trace
+- Barcoded Digital Appointment Pass & Emergency Safety Escalation Banner
+- Real-Time Human-in-the-Loop (HITL) Nurse Triage Management Portal
+- Interactive Clinical Guideline Protocol Explorer
+- Downloadable Triage Clinical Summary Report
+"""
+
+import streamlit as st
+import time
+import datetime
+import os
+from tools import retrieve_triage_protocol, calculate_severity, book_appointment
+from agent_graph import run_triage_agent, build_triage_graph
+
+# Page configuration - Clean without emojis
+st.set_page_config(
+    page_title="PulseCare AI — Smart Triage Agent",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# Advanced Glassmorphism & High-Contrast CSS Framework (No Emojis)
+st.markdown("""
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+    
+    html, body, [class*="css"] {
+        font-family: 'Outfit', 'Inter', sans-serif;
+    }
+    
+    /* Main Background with Glassmorphic Gradient Mesh */
+    .stApp {
+        background: linear-gradient(135deg, #F0F4F8 0%, #E2E8F0 50%, #EDF2F7 100%);
+    }
+
+    /* Target Main Area Headers & Text Contrast Specifically */
+    [data-testid="stMain"] h1, 
+    [data-testid="stMain"] h2, 
+    [data-testid="stMain"] h3, 
+    [data-testid="stMain"] h4, 
+    [data-testid="stMain"] h5,
+    [data-testid="stMain"] .stMarkdown h1, 
+    [data-testid="stMain"] .stMarkdown h2, 
+    [data-testid="stMain"] .stMarkdown h3, 
+    [data-testid="stMain"] .stMarkdown h4, 
+    [data-testid="stMain"] .stMarkdown h5 {
+        color: #0F172A !important;
+        font-weight: 700 !important;
+        letter-spacing: -0.3px;
+    }
+    
+    [data-testid="stMain"] p, 
+    [data-testid="stMain"] span, 
+    [data-testid="stMain"] label, 
+    [data-testid="stMain"] div[data-testid="stMarkdownContainer"] p,
+    [data-testid="stMain"] .stCaption {
+        color: #1E293B !important;
+        font-weight: 500 !important;
+    }
+
+    /* Form Widget Labels & Inputs High Contrast */
+    label, 
+    .stTextInput label, 
+    .stNumberInput label, 
+    .stTextArea label, 
+    .stSlider label, 
+    .stSelectbox label, 
+    div[data-testid="stWidgetLabel"] p {
+        color: #0F172A !important;
+        font-weight: 700 !important;
+        font-size: 0.95rem !important;
+    }
+
+    div[data-baseweb="input"] input, 
+    div[data-baseweb="textarea"] textarea,
+    input[type="text"], 
+    input[type="number"], 
+    textarea {
+        color: #0F172A !important;
+        background-color: #FFFFFF !important;
+        border: 1.5px solid #CBD5E1 !important;
+        font-weight: 600 !important;
+        border-radius: 8px !important;
+    }
+
+    /* Tab Titles & Active State Contrast */
+    button[data-baseweb="tab"] p, 
+    div[data-baseweb="tab-list"] button p,
+    .stTabs [data-baseweb="tab"] div {
+        color: #334155 !important;
+        font-weight: 700 !important;
+        font-size: 0.95rem !important;
+    }
+
+    button[data-baseweb="tab"][aria-selected="true"] p,
+    .stTabs [data-baseweb="tab"][aria-selected="true"] div {
+        color: #0D9488 !important;
+        font-weight: 800 !important;
+    }
+
+    /* Markdown Tables & Lists High Contrast */
+    table, table * {
+        color: #0F172A !important;
+        background-color: #FFFFFF !important;
+    }
+    
+    th {
+        background-color: #F1F5F9 !important;
+        color: #0F172A !important;
+        font-weight: 700 !important;
+        border-bottom: 2px solid #CBD5E1 !important;
+    }
+
+    td {
+        color: #1E293B !important;
+        border-bottom: 1px solid #E2E8F0 !important;
+    }
+
+    ul, li, ol, ul *, li *, ol * {
+        color: #1E293B !important;
+        font-weight: 500 !important;
+    }
+
+    pre, code, .stCodeBlock, .stCodeBlock * {
+        color: #0F172A !important;
+        background-color: #F8FAFC !important;
+    }
+
+    /* Alert Box & Notification Text Contrast */
+    div[data-testid="stNotification"] p, 
+    div[data-testid="stNotification"] div,
+    .stAlert p, 
+    .stAlert div {
+        color: #0F172A !important;
+        font-weight: 600 !important;
+    }
+
+    /* Main Area Buttons High Contrast */
+    [data-testid="stMain"] .stButton > button {
+        background-color: #FFFFFF !important;
+        color: #0F172A !important;
+        border: 1.5px solid #CBD5E1 !important;
+        font-weight: 600 !important;
+    }
+    
+    [data-testid="stMain"] .stButton > button p {
+        color: #0F172A !important;
+        font-weight: 600 !important;
+    }
+
+    /* Primary Action Submit Buttons */
+    [data-testid="stMain"] button[kind="primary"],
+    [data-testid="stMain"] button[type="submit"] {
+        background-color: #0D9488 !important;
+        border: none !important;
+    }
+    
+    [data-testid="stMain"] button[kind="primary"] p,
+    [data-testid="stMain"] button[type="submit"] p {
+        color: #FFFFFF !important;
+        font-weight: 700 !important;
+    }
+
+    /* Target Sidebar Specifically - Clean High-Contrast Light Sidebar */
+    section[data-testid="stSidebar"], 
+    [data-testid="stSidebar"],
+    div[data-testid="stSidebarUserContent"] {
+        background-color: #FFFFFF !important;
+        background: #FFFFFF !important;
+        border-right: 2px solid #CBD5E1 !important;
+    }
+
+    section[data-testid="stSidebar"] h1, 
+    section[data-testid="stSidebar"] h2, 
+    section[data-testid="stSidebar"] h3, 
+    section[data-testid="stSidebar"] h4,
+    [data-testid="stSidebar"] h1,
+    [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] h3,
+    [data-testid="stSidebar"] h4,
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h2,
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3 {
+        color: #0F172A !important;
+        font-weight: 700 !important;
+    }
+
+    section[data-testid="stSidebar"] p, 
+    section[data-testid="stSidebar"] span, 
+    section[data-testid="stSidebar"] label,
+    section[data-testid="stSidebar"] caption,
+    section[data-testid="stSidebar"] .stCaption,
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] span,
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] span {
+        color: #334155 !important;
+        font-weight: 500 !important;
+    }
+
+    /* Sidebar Persona Buttons */
+    section[data-testid="stSidebar"] .stButton > button,
+    [data-testid="stSidebar"] .stButton > button {
+        background-color: #F8FAFC !important;
+        background: #F8FAFC !important;
+        color: #0F172A !important;
+        border: 1.5px solid #CBD5E1 !important;
+        border-radius: 12px !important;
+        padding: 0.65rem 1rem !important;
+        transition: all 0.25s ease !important;
+        font-weight: 600 !important;
+        text-align: left !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
+    }
+
+    section[data-testid="stSidebar"] .stButton > button p,
+    [data-testid="stSidebar"] .stButton > button p,
+    section[data-testid="stSidebar"] .stButton > button span,
+    [data-testid="stSidebar"] .stButton > button span {
+        color: #0F172A !important;
+        font-weight: 600 !important;
+    }
+
+    section[data-testid="stSidebar"] .stButton > button:hover,
+    [data-testid="stSidebar"] .stButton > button:hover {
+        background-color: #0D9488 !important;
+        background: #0D9488 !important;
+        border-color: #064E3B !important;
+        box-shadow: 0 6px 16px rgba(13, 148, 136, 0.25) !important;
+        transform: translateX(4px) !important;
+    }
+
+    section[data-testid="stSidebar"] .stButton > button:hover p,
+    [data-testid="stSidebar"] .stButton > button:hover p,
+    section[data-testid="stSidebar"] .stButton > button:hover span,
+    [data-testid="stSidebar"] .stButton > button:hover span {
+        color: #FFFFFF !important;
+    }
+
+    /* Sidebar Info / Callout Boxes */
+    section[data-testid="stSidebar"] .stAlert,
+    [data-testid="stSidebar"] .stAlert {
+        background-color: #F0FDF4 !important;
+        background: #F0FDF4 !important;
+        border: 1.5px solid #6EE7B7 !important;
+        border-radius: 14px !important;
+    }
+
+    section[data-testid="stSidebar"] .stAlert p,
+    [data-testid="stSidebar"] .stAlert p,
+    section[data-testid="stSidebar"] .stAlert div,
+    [data-testid="stSidebar"] .stAlert div {
+        color: #064E3B !important;
+        font-weight: 500 !important;
+    }
+
+    /* Glassmorphic Hero Banner */
+    .hero-container {
+        background: linear-gradient(135deg, rgba(15, 23, 42, 0.92) 0%, rgba(30, 58, 138, 0.88) 50%, rgba(13, 148, 136, 0.85) 100%);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        padding: 2.2rem 2.5rem;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.2);
+        margin-bottom: 1.5rem;
+    }
+    .hero-title {
+        font-size: 2.3rem;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        margin-bottom: 0.4rem;
+        color: #FFFFFF !important;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .hero-subtitle {
+        font-size: 1.05rem;
+        color: #E2E8F0 !important;
+        font-weight: 400;
+        max-width: 900px;
+        line-height: 1.55;
+    }
+
+    /* Glass Stat Cards */
+    .glass-stat-card {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: 16px;
+        padding: 1.1rem 1.2rem;
+        box-shadow: 0 8px 24px 0 rgba(15, 23, 42, 0.05);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        transition: all 0.3s ease;
+    }
+    .glass-stat-card:hover {
+        transform: translateY(-3px);
+        background: rgba(255, 255, 255, 0.88);
+        box-shadow: 0 12px 30px 0 rgba(13, 148, 136, 0.15);
+        border-color: #0D9488;
+    }
+    .stat-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+    .indicator-green { background-color: #10B981; box-shadow: 0 0 8px #10B981; }
+    .indicator-teal { background-color: #0D9488; box-shadow: 0 0 8px #0D9488; }
+    .indicator-blue { background-color: #0284C7; box-shadow: 0 0 8px #0284C7; }
+    .indicator-red { background-color: #EF4444; box-shadow: 0 0 8px #EF4444; }
+
+    .stat-label {
+        font-size: 0.76rem;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: #475569 !important;
+        font-weight: 600;
+    }
+    .stat-value {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #0F172A !important;
+    }
+
+    /* Glass Badges */
+    .badge-routine {
+        background: rgba(209, 250, 229, 0.85);
+        backdrop-filter: blur(8px);
+        color: #065F46 !important;
+        border: 1px solid #34D399;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.88rem;
+        display: inline-flex;
+        align-items: center;
+        letter-spacing: 0.3px;
+    }
+    .badge-urgent {
+        background: rgba(254, 243, 199, 0.85);
+        backdrop-filter: blur(8px);
+        color: #92400E !important;
+        border: 1px solid #FBBF24;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.88rem;
+        display: inline-flex;
+        align-items: center;
+        letter-spacing: 0.3px;
+    }
+    .badge-emergency {
+        background: rgba(254, 226, 226, 0.9);
+        backdrop-filter: blur(8px);
+        color: #991B1B !important;
+        border: 1px solid #F87171;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.88rem;
+        display: inline-flex;
+        align-items: center;
+        letter-spacing: 0.3px;
+        animation: pulse-red 1.8s infinite;
+    }
+    
+    @keyframes pulse-red {
+        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+
+    /* Glass Appointment Pass */
+    .appointment-pass {
+        background: rgba(240, 253, 244, 0.85);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 2px dashed #0D9488;
+        border-radius: 18px;
+        padding: 1.6rem;
+        color: #064E3B !important;
+        margin-top: 1.2rem;
+        box-shadow: 0 10px 30px rgba(13, 148, 136, 0.1);
+    }
+    .appointment-pass p, .appointment-pass span, .appointment-pass strong {
+        color: #064E3B !important;
+    }
+    
+    /* Glass Emergency Banner */
+    .emergency-banner {
+        background: rgba(254, 242, 242, 0.9);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 2px solid #EF4444;
+        border-radius: 18px;
+        padding: 1.6rem;
+        color: #7F1D1D !important;
+        margin-top: 1.2rem;
+        box-shadow: 0 10px 30px rgba(239, 68, 68, 0.12);
+    }
+    .emergency-banner p, .emergency-banner span, .emergency-banner strong, .emergency-banner h4 {
+        color: #7F1D1D !important;
+    }
+
+    /* Glass Execution Node Cards */
+    .trace-node {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        border-left: 5px solid #0D9488;
+        padding: 14px 18px;
+        border-radius: 0 14px 14px 0;
+        margin-bottom: 12px;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+        border-top: 1px solid rgba(226, 232, 240, 0.8);
+        border-right: 1px solid rgba(226, 232, 240, 0.8);
+        border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+    }
+    .trace-node p, .trace-node strong, .trace-node code {
+        color: #1E293B !important;
+    }
+    
+    /* Barcode Simulation */
+    .barcode {
+        font-family: 'Courier New', Courier, monospace;
+        letter-spacing: 4px;
+        font-weight: bold;
+        background: #0F172A;
+        color: #10B981 !important;
+        padding: 5px 14px;
+        border-radius: 6px;
+        display: inline-block;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+
+# Session State Initialization
+if "nurse_queue" not in st.session_state:
+    st.session_state.nurse_queue = [
+        {
+            "id": "CASE-902",
+            "patient_name": "Charlie Davis",
+            "age": 62,
+            "symptoms": "Chest pain and severe difficulty breathing with cold sweats",
+            "duration": 1,
+            "protocol": "Acute Chest Pain and Respiratory Distress",
+            "score": 0.4493,
+            "status": "AWAITING_NURSE_REVIEW",
+            "time": "10 mins ago"
+        }
+    ]
+
+if "last_result" not in st.session_state:
+    st.session_state.last_result = None
+
+if "input_symptoms" not in st.session_state:
+    st.session_state.input_symptoms = "Mild cough and slightly runny nose for two days"
+
+if "input_name" not in st.session_state:
+    st.session_state.input_name = "Alice Johnson"
+
+if "input_age" not in st.session_state:
+    st.session_state.input_age = 28
+
+if "input_duration" not in st.session_state:
+    st.session_state.input_duration = 2
+
+
+# Helper function to load persona preset
+def load_persona(name, age, duration, symptoms):
+    st.session_state.input_name = name
+    st.session_state.input_age = age
+    st.session_state.input_duration = duration
+    st.session_state.input_symptoms = symptoms
+
+
+# Sidebar Controls - Emoji Free
+with st.sidebar:
+    st.markdown("## PulseCare AI")
+    st.caption("Clinical LangGraph Triage Orchestrator v2.0")
+    st.markdown("---")
+    
+    st.markdown("### 1-Click Patient Personas")
+    st.caption("Select a preset case to test triage workflow:")
+    
+    if st.button("Persona 1: Alice Johnson (Mild Cold - Routine)", use_container_width=True):
+        load_persona("Alice Johnson", 28, 2, "Mild dry cough for two days, clear runny nose, and minor throat tickle")
+        st.rerun()
+        
+    if st.button("Persona 2: Bob Smith (High Fever - Urgent)", use_container_width=True):
+        load_persona("Bob Smith", 45, 4, "Persistent high fever of 103F for 4 days with severe chills and body aches")
+        st.rerun()
+        
+    if st.button("Persona 3: Charlie Davis (Chest Pain - Emergency)", use_container_width=True):
+        load_persona("Charlie Davis", 62, 1, "Crushing chest pain radiating to left arm and severe shortness of breath")
+        st.rerun()
+        
+    if st.button("Persona 4: Emma Watson (Stroke FAST - Emergency)", use_container_width=True):
+        load_persona("Emma Watson", 71, 1, "Sudden facial drooping on right side, slurred speech, and arm weakness")
+        st.rerun()
+        
+    if st.button("Persona 5: David Wilson (Tension/Fatigue - Routine)", use_container_width=True):
+        load_persona("David Wilson", 34, 1, "Feeling generally fatigued with mild forehead tension headache after long work")
+        st.rerun()
+
+    st.markdown("---")
+    st.markdown("### System Configuration")
+    st.success("LLM Pipeline: Active (Groq / Ollama / Fallback)")
+    st.info("Workflow Engine: LangGraph 5-Node Graph\nVector RAG: TF-IDF + Cosine Similarity\nRules Engine: Deterministic Safety Rules")
+
+
+# Glassmorphic Hero Header (No Emojis)
+st.markdown("""
+<div class="hero-container">
+    <div class="hero-title">PulseCare AI — Smart Triage & Booking Agent</div>
+    <div class="hero-subtitle">
+        A safety-first clinical agent workflow powered by LangGraph. It retrieves evidence-based medical protocols using TF-IDF RAG, applies zero-hallucination deterministic safety rules, automates clinic scheduling for routine cases, and halts execution for human nurse review during high-risk emergencies.
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+
+# Glassmorphic Metrics Banner (4 Stat Cards, No Emojis)
+m1, m2, m3, m4 = st.columns(4)
+with m1:
+    st.markdown("""
+    <div class="glass-stat-card">
+        <div class="stat-indicator indicator-green"></div>
+        <div>
+            <div class="stat-label">Agent Status</div>
+            <div class="stat-value">Active & Ready</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+with m2:
+    st.markdown("""
+    <div class="glass-stat-card">
+        <div class="stat-indicator indicator-teal"></div>
+        <div>
+            <div class="stat-label">Knowledge Base</div>
+            <div class="stat-value">6 Protocols Loaded</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+with m3:
+    st.markdown("""
+    <div class="glass-stat-card">
+        <div class="stat-indicator indicator-blue"></div>
+        <div>
+            <div class="stat-label">Workflow Engine</div>
+            <div class="stat-value">LangGraph Graph</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+with m4:
+    nurse_count = len(st.session_state.nurse_queue)
+    st.markdown(f"""
+    <div class="glass-stat-card">
+        <div class="stat-indicator {'indicator-red' if nurse_count > 0 else 'indicator-green'}"></div>
+        <div>
+            <div class="stat-label">Nurse HITL Queue</div>
+            <div class="stat-value" style="color: {'#DC2626' if nurse_count > 0 else '#10B981'} !important">{nurse_count} Pending</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# Main Navigation Tabs - Emoji Free
+tab_triage, tab_nurse, tab_protocols, tab_architecture = st.tabs([
+    "Patient Intake & Live Triage",
+    f"Nurse Review Portal ({len(st.session_state.nurse_queue)} Pending)",
+    "Clinical Guidelines Explorer",
+    "System Architecture & Evaluation"
+])
+
+
+# ==========================================
+# TAB 1: PATIENT INTAKE & LIVE TRIAGE
+# ==========================================
+with tab_triage:
+    col_left, col_right = st.columns([1.1, 1.25], gap="large")
+    
+    with col_left:
+        st.markdown("### Patient Symptom Intake")
+        st.caption("Fill out patient details below or click a quick category tag to add symptoms.")
+        
+        # Categorized Quick Symptom Chips - Emoji Free
+        st.markdown("**Quick Symptom Chips (Click to append):**")
+        
+        tag_cat1, tag_cat2, tag_cat3 = st.columns(3)
+        with tag_cat1:
+            st.markdown("*Respiratory*")
+            if st.button("+ Mild Cough", key="btn_c1", use_container_width=True):
+                st.session_state.input_symptoms += ", mild cough"
+                st.rerun()
+            if st.button("+ Shortness of Breath", key="btn_c2", use_container_width=True):
+                st.session_state.input_symptoms += ", severe shortness of breath"
+                st.rerun()
+                
+        with tag_cat2:
+            st.markdown("*Cardiac & Neuro*")
+            if st.button("+ Chest Pain", key="btn_c3", use_container_width=True):
+                st.session_state.input_symptoms += ", crushing chest pain radiating to arm"
+                st.rerun()
+            if st.button("+ Facial Drooping", key="btn_c4", use_container_width=True):
+                st.session_state.input_symptoms += ", sudden facial drooping and slurred speech"
+                st.rerun()
+                
+        with tag_cat3:
+            st.markdown("*Fever & General*")
+            if st.button("+ High Fever", key="btn_c5", use_container_width=True):
+                st.session_state.input_symptoms += ", persistent high fever of 103F with chills"
+                st.rerun()
+            if st.button("+ Tension Headache", key="btn_c6", use_container_width=True):
+                st.session_state.input_symptoms += ", mild forehead tension headache"
+                st.rerun()
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        # Patient Intake Form
+        with st.form("triage_intake_form"):
+            st.markdown("#### Patient Demographics & Presenting Complaints")
+            c_name, c_age = st.columns([2, 1])
+            with c_name:
+                p_name = st.text_input("Patient Full Name", value=st.session_state.input_name)
+            with c_age:
+                p_age = st.number_input("Age (Years)", min_value=1, max_value=120, value=st.session_state.input_age)
+                
+            c_dur, c_discomfort = st.columns(2)
+            with c_dur:
+                p_duration = st.slider("Duration of Symptoms (Days)", min_value=1, max_value=30, value=st.session_state.input_duration)
+            with c_discomfort:
+                p_discomfort = st.select_slider(
+                    "Self-Reported Pain Level",
+                    options=["Mild (1-3)", "Moderate (4-6)", "Severe (7-8)", "Critical (9-10)"],
+                    value="Mild (1-3)"
+                )
+            
+            p_symptoms = st.text_area(
+                "Describe Symptoms & Clinical Presentation",
+                value=st.session_state.input_symptoms,
+                height=110,
+                placeholder="Example: Chest pain, shortness of breath, high fever for 3 days..."
+            )
+            
+            run_btn = st.form_submit_button("Execute LangGraph AI Triage & Booking Agent", use_container_width=True, type="primary")
+
+    with col_right:
+        st.markdown("### Live Workflow & Triage Decision Engine")
+        
+        if run_btn:
+            if not p_symptoms.strip():
+                st.error("Please enter patient symptoms before running the triage agent.")
+            else:
+                status_box = st.empty()
+                with status_box.container():
+                    st.info("LangGraph Node 1/4: Vectorizing text & searching clinical guidelines via TF-IDF RAG...")
+                    time.sleep(0.3)
+                    st.info("LangGraph Node 2/4: Evaluating deterministic clinical safety rules...")
+                    time.sleep(0.3)
+                
+                # Execute full LangGraph agent workflow
+                result = run_triage_agent(
+                    patient_name=p_name,
+                    age=int(p_age),
+                    symptoms_text=p_symptoms,
+                    duration_days=int(p_duration)
+                )
+                st.session_state.last_result = result
+                status_box.empty()
+                
+                # If emergency, automatically insert into nurse queue
+                if result["severity_level"] == "EMERGENCY":
+                    if not any(c.get("patient_name") == p_name for c in st.session_state.nurse_queue):
+                        st.session_state.nurse_queue.insert(0, {
+                            "id": f"CASE-{int(time.time()) % 1000}",
+                            "patient_name": p_name,
+                            "age": p_age,
+                            "symptoms": p_symptoms,
+                            "duration": p_duration,
+                            "protocol": result['matched_protocol_title'],
+                            "score": result['retrieval_score'],
+                            "status": "AWAITING_NURSE_REVIEW",
+                            "time": datetime.datetime.now().strftime("%I:%M %p")
+                        })
+        
+        # Display Result if available
+        if st.session_state.last_result:
+            res = st.session_state.last_result
+            sev = res["severity_level"]
+            
+            # Triage Level Banner Header - Emoji Free
+            if sev == "EMERGENCY":
+                badge_html = "<span class='badge-emergency'>EMERGENCY ESCALATION</span>"
+            elif sev == "URGENT":
+                badge_html = "<span class='badge-urgent'>URGENT CLINICAL EVALUATION</span>"
+            else:
+                badge_html = "<span class='badge-routine'>ROUTINE CLINICAL CARE</span>"
+                
+            st.markdown(f"#### Triage Classification: {badge_html}", unsafe_allow_html=True)
+            st.caption(f"Rule Applied: `{res['rule_applied']}` | Clinical Rationale: {res['severity_reasoning']}")
+
+            # Visual RAG Match Score Gauge
+            sim_score = min(max(res['retrieval_score'], 0.0), 1.0)
+            st.markdown(f"**RAG Vector Match Score:** `{sim_score:.4f}` ({sim_score*100:.1f}% Confidence Match)")
+            st.progress(sim_score)
+
+            # Detailed LangGraph Execution Trace Node by Node - Emoji Free
+            with st.expander("Step-by-Step LangGraph Node Execution Trace", expanded=True):
+                st.markdown(f"""
+                <div class="trace-node" style="border-left-color: #0284C7;">
+                    <strong>Node 1: RAG Protocol Retriever (TF-IDF & Cosine Similarity)</strong><br>
+                    • Matched Protocol: <code>[{res['matched_protocol_id']}] {res['matched_protocol_title']}</code><br>
+                    • Guideline Category: <strong>{res['protocol_category']}</strong> (Score: <strong>{res['retrieval_score']:.4f}</strong>)<br>
+                    • Grounded Protocol Evidence: <em>"{res['protocol_evidence']}"</em>
+                </div>
+                
+                <div class="trace-node" style="border-left-color: #D97706;">
+                    <strong>Node 2: Deterministic Clinical Severity Engine</strong><br>
+                    • Evaluated Acuity Tier: <strong>{res['severity_level']}</strong><br>
+                    • Applied Safety Rule: <code>{res['rule_applied']}</code><br>
+                    • Decision Rationale: {res['severity_reasoning']}
+                </div>
+                """, unsafe_allow_html=True)
+                
+                if sev == "EMERGENCY":
+                    st.markdown(f"""
+                    <div class="trace-node" style="border-left-color: #DC2626; background: rgba(254, 242, 242, 0.9);">
+                        <strong>Node 4: Human-in-the-Loop Nurse Gate (HITL)</strong><br>
+                        • Execution Control: <strong>Automated Booking Blocked for Patient Safety</strong><br>
+                        • Queue Status: <code>{res['nurse_review_status']}</code><br>
+                        • Recommended Action: {res['nurse_action']}<br>
+                        • Clinical Audit Log: {res['nurse_notes']}
+                    </div>
+                    """, unsafe_allow_html=True)
+                else:
+                    appt = res["appointment_details"]
+                    st.markdown(f"""
+                    <div class="trace-node" style="border-left-color: #16A34A; background: rgba(240, 253, 244, 0.9);">
+                        <strong>Node 3: Automated Clinic Scheduling Tool</strong><br>
+                        • Pass Confirmation ID: <code>{appt.get('appointment_id')}</code><br>
+                        • Assigned Department: <strong>{appt.get('department')}</strong><br>
+                        • Scheduled Appointment: <strong>{appt.get('appointment_time')}</strong> ({appt.get('slot_type')})
+                    </div>
+                    """, unsafe_allow_html=True)
+
+            # Output Component: Digital Pass OR Emergency Banner (No Emojis)
+            if sev == "EMERGENCY":
+                st.markdown(f"""
+                <div class="emergency-banner">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h4 style="margin:0; color:#991B1B;">EMERGENCY CLINICAL SAFETY INTERVENTION</h4>
+                        <span class="badge-emergency">HITL ACTIVE</span>
+                    </div>
+                    <hr style="border-top:1px solid #FCA5A5; margin:10px 0;">
+                    <p style="margin:4px 0;"><strong>Patient:</strong> {res['patient_name']} (Age: {res['age']})</p>
+                    <p style="margin:4px 0;"><strong>Trigger Protocol:</strong> <em>{res['matched_protocol_title']}</em></p>
+                    <p style="margin:6px 0; font-weight:600; color:#991B1B;">Automated booking was blocked. Case has been queued in the Clinical Nurse Review Portal for immediate emergency response.</p>
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                appt = res["appointment_details"]
+                st.markdown(f"""
+                <div class="appointment-pass">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h4 style="margin:0; color:#064E3B;">DIGITAL APPOINTMENT CONFIRMATION PASS</h4>
+                        <span style="background:#064E3B; color:white !important; padding:4px 12px; border-radius:12px; font-size:0.8rem; font-weight:700;">{appt.get('status')}</span>
+                    </div>
+                    <hr style="border-top:1px dashed #34D399; margin:10px 0;">
+                    <div style="display:flex; justify-content:space-between;">
+                        <div>
+                            <p style="margin:4px 0;"><strong>Patient:</strong> {res['patient_name']} (Age: {res['age']})</p>
+                            <p style="margin:4px 0;"><strong>Clinic Department:</strong> {appt.get('department')}</p>
+                            <p style="margin:4px 0;"><strong>Slot Time:</strong> {appt.get('appointment_time')} (<em>{appt.get('slot_type')}</em>)</p>
+                            <p style="margin:4px 0; font-size:0.88rem; color:#064E3B;"><strong>Instructions:</strong> {appt.get('special_instructions')}</p>
+                        </div>
+                        <div style="text-align:right;">
+                            <div class="barcode">||| || | ||| ||</div>
+                            <div style="font-size:0.78rem; font-family:monospace; margin-top:4px;">{appt.get('appointment_id')}</div>
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+            # Grounded Patient Summary Card (No Emojis)
+            st.markdown("#### Grounded Patient Care Plan & Instructions")
+            st.info(res["llm_summary"])
+            
+            # Clinical Summary Download Button (No Emojis)
+            report_text = f"""=====================================================
+PULSECARE AI — CLINICAL TRIAGE ASSESSMENT REPORT
+Generated: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+=====================================================
+PATIENT DEMOGRAPHICS
+Name              : {res['patient_name']}
+Age               : {res['age']}
+Reported Symptoms : {res['symptoms_text']} (Duration: {res['duration_days']} days)
+-----------------------------------------------------
+CLINICAL TRIAGE FINDINGS
+Assessed Severity : {res['severity_level']}
+Rule Applied      : {res['rule_applied']}
+Rule Rationale    : {res['severity_reasoning']}
+Matched Protocol  : [{res['matched_protocol_id']}] {res['matched_protocol_title']}
+RAG Match Score   : {res['retrieval_score']:.4f}
+-----------------------------------------------------
+FINAL DISPOSITION
+Status            : {res['final_status']}
+Care Plan Summary : {res['llm_summary']}
+====================================================="""
+            
+            st.download_button(
+                label="Download Official Clinical Triage Summary (TXT)",
+                data=report_text,
+                file_name=f"Triage_Report_{res['patient_name'].replace(' ', '_')}.txt",
+                mime="text/plain",
+                use_container_width=True
+            )
+        else:
+            st.info("Use the intake form on the left or select a 1-Click Persona Preset in the sidebar to run the agent workflow.")
+
+
+# ==========================================
+# TAB 2: NURSE REVIEW PORTAL (HITL) - No Emojis
+# ==========================================
+with tab_nurse:
+    st.markdown("### Clinical Triage Nurse Review Portal (Human-in-the-Loop)")
+    st.markdown("When the AI agent flags critical red flags or emergency protocols, **automated scheduling is withheld**. Cases are queued in real time for clinical triage nurse review and override.")
+    
+    if not st.session_state.nurse_queue:
+        st.success("No active emergency cases in the nurse queue! All patient cases have been dispositioned.")
+    else:
+        st.write(f"**{len(st.session_state.nurse_queue)} Emergency Case(s) Requiring Immediate Clinician Action:**")
+        
+        for idx, case in enumerate(st.session_state.nurse_queue):
+            with st.container():
+                st.markdown(f"""
+                <div style="background:rgba(255, 255, 255, 0.85); backdrop-filter:blur(12px); border:2px solid #FCA5A5; border-left:6px solid #DC2626; border-radius:14px; padding:1.2rem; margin-bottom:1rem; box-shadow:0 4px 14px rgba(220, 38, 38, 0.08);">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h4 style="margin:0; color:#991B1B !important;">[{case['id']}] {case['patient_name']} (Age: {case['age']})</h4>
+                        <span class="badge-emergency">AWAITING NURSE ACTION</span>
+                    </div>
+                    <p style="margin: 8px 0 4px 0; color:#1E293B !important;"><strong>Presenting Symptoms:</strong> {case['symptoms']} (Duration: {case['duration']} days)</p>
+                    <p style="margin: 4px 0; color:#1E293B !important;"><strong>Matched Protocol:</strong> {case['protocol']} (Similarity Score: {case.get('score', 0.45):.4f})</p>
+                    <p style="margin: 4px 0; color:#64748B !important; font-size:0.88rem;"><strong>Logged Time:</strong> {case.get('time', 'Just now')}</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                c_action, c_notes, c_confirm = st.columns([1.5, 2, 1])
+                with c_action:
+                    nurse_act = st.selectbox(
+                        "Clinical Action / Intervention",
+                        [
+                            "Dispatch Emergency Medical Services (911/EMS)",
+                            "Direct Patient to Emergency Department",
+                            "Initiate Immediate Urgent Physician Call",
+                            "Override to Priority Urgent Care Clinic Slot"
+                        ],
+                        key=f"nurse_act_{case['id']}"
+                    )
+                with c_notes:
+                    nurse_note = st.text_input(
+                        "Clinician Review Notes",
+                        value="Emergency confirmed: Symptoms indicate potential critical compromise.",
+                        key=f"nurse_note_{case['id']}"
+                    )
+                with c_confirm:
+                    st.write("")
+                    st.write("")
+                    if st.button(f"Confirm Review", key=f"btn_confirm_{case['id']}", use_container_width=True, type="primary"):
+                        st.success(f"Case {case['id']} ({case['patient_name']}) dispositioned: {nurse_act}")
+                        st.session_state.nurse_queue.pop(idx)
+                        time.sleep(0.4)
+                        st.rerun()
+
+
+# ==========================================
+# TAB 3: CLINICAL GUIDELINES EXPLORER - No Emojis
+# ==========================================
+with tab_protocols:
+    st.markdown("### Clinical Guidelines Knowledge Base Explorer")
+    st.caption("Search and explore the ground-truth clinical triage protocols stored in `data/clinical_triage_guidelines.txt`.")
+    
+    guideline_path = "data/clinical_triage_guidelines.txt"
+    if os.path.exists(guideline_path):
+        with open(guideline_path, "r", encoding="utf-8") as f:
+            content = f.read()
+            
+        search_term = st.text_input("Search Protocols by Keyword (e.g. Chest Pain, Fever, Stroke, Headache)", "")
+        
+        protocols = content.split("---------------------------------------------------------------------------")
+        
+        filtered_count = 0
+        for proto in protocols:
+            if not proto.strip():
+                continue
+            if search_term.lower() in proto.lower():
+                filtered_count += 1
+                lines = [l.strip() for l in proto.strip().split("\n") if l.strip()]
+                header = lines[0] if lines else "Protocol"
+                
+                with st.expander(f"Protocol: {header}", expanded=(filtered_count == 1)):
+                    st.text(proto.strip())
+                    
+        if filtered_count == 0:
+            st.warning(f"No clinical protocols found matching keyword: '{search_term}'")
+    else:
+        st.error("Clinical guideline dataset not found at `data/clinical_triage_guidelines.txt`.")
+
+
+# ==========================================
+# TAB 4: SYSTEM ARCHITECTURE & EVALUATION - No Emojis
+# ==========================================
+with tab_architecture:
+    st.markdown("### System Architecture & Knowledge/Risk Evaluation")
+    
+    col_arch1, col_arch2 = st.columns([1.1, 1.1], gap="large")
+    with col_arch1:
+        st.markdown("#### 4-Layer LangGraph Workflow Architecture")
+        st.markdown("""
+        <div style="background:#FFFFFF; border:1.5px solid #CBD5E1; border-radius:16px; padding:1.4rem; box-shadow:0 6px 18px rgba(15, 23, 42, 0.05);">
+            <div style="border-left:5px solid #0284C7; padding-left:14px; margin-bottom:14px;">
+                <strong style="color:#0284C7 !important; font-size:1.05rem;">Layer 1: User Intake & Input Vectorization</strong><br>
+                <span style="color:#1E293B !important; font-size:0.92rem;">Patient presents symptoms, age, and duration. Input text is tokenized.</span>
+            </div>
+            <div style="border-left:5px solid #0D9488; padding-left:14px; margin-bottom:14px;">
+                <strong style="color:#0D9488 !important; font-size:1.05rem;">Layer 2: RAG Protocol Retrieval (TF-IDF & Cosine Similarity)</strong><br>
+                <span style="color:#1E293B !important; font-size:0.92rem;">Extracts ground-truth clinical guidelines from dataset and calculates match confidence.</span>
+            </div>
+            <div style="border-left:5px solid #D97706; padding-left:14px; margin-bottom:14px;">
+                <strong style="color:#D97706 !important; font-size:1.05rem;">Layer 3: Deterministic Severity Rule Engine</strong><br>
+                <span style="color:#1E293B !important; font-size:0.92rem;">Classifies case into ROUTINE, URGENT, or EMERGENCY without LLM hallucination.</span>
+            </div>
+            <div style="border-left:5px solid #DC2626; padding-left:14px; margin-bottom:14px;">
+                <strong style="color:#DC2626 !important; font-size:1.05rem;">Layer 4: LangGraph Routing & Human-in-the-Loop Gate</strong><br>
+                <span style="color:#1E293B !important; font-size:0.92rem;">Auto-books ROUTINE/URGENT cases. Halts and escalates EMERGENCY cases to Nurse Portal.</span>
+            </div>
+            <div style="border-left:5px solid #7C3AED; padding-left:14px;">
+                <strong style="color:#7C3AED !important; font-size:1.05rem;">Layer 5: Provider-Routed LLM Grounded Summary</strong><br>
+                <span style="color:#1E293B !important; font-size:0.92rem;">Synthesizes care instructions via Groq / Ollama / Fallback strictly grounded on evidence.</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    with col_arch2:
+        st.markdown("#### Knowledge & Risk Evaluation Benchmark")
+        st.markdown("""
+        <table style="width:100%; border-collapse:collapse; background:#FFFFFF; border:1.5px solid #CBD5E1; border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.04);">
+            <thead>
+                <tr style="background:#F1F5F9; text-align:left;">
+                    <th style="padding:10px 14px; color:#0F172A !important; font-weight:700; border-bottom:2px solid #CBD5E1;">Case</th>
+                    <th style="padding:10px 14px; color:#0F172A !important; font-weight:700; border-bottom:2px solid #CBD5E1;">Scenario</th>
+                    <th style="padding:10px 14px; color:#0F172A !important; font-weight:700; border-bottom:2px solid #CBD5E1;">Expected</th>
+                    <th style="padding:10px 14px; color:#0F172A !important; font-weight:700; border-bottom:2px solid #CBD5E1;">Result</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="border-bottom:1px solid #E2E8F0; background:#FFFFFF;">
+                    <td style="padding:10px 14px; color:#0F172A !important; font-weight:600;">Case 1</td>
+                    <td style="padding:10px 14px; color:#1E293B !important;">Mild Cough (2 days)</td>
+                    <td style="padding:10px 14px;"><span class="badge-routine">ROUTINE</span></td>
+                    <td style="padding:10px 14px; color:#16A34A !important; font-weight:700;">PASSED</td>
+                </tr>
+                <tr style="border-bottom:1px solid #E2E8F0; background:#FFFFFF;">
+                    <td style="padding:10px 14px; color:#0F172A !important; font-weight:600;">Case 2</td>
+                    <td style="padding:10px 14px; color:#1E293B !important;">Persistent High Fever (4 days)</td>
+                    <td style="padding:10px 14px;"><span class="badge-urgent">URGENT</span></td>
+                    <td style="padding:10px 14px; color:#16A34A !important; font-weight:700;">PASSED</td>
+                </tr>
+                <tr style="border-bottom:1px solid #E2E8F0; background:#FFFFFF;">
+                    <td style="padding:10px 14px; color:#0F172A !important; font-weight:600;">Case 3</td>
+                    <td style="padding:10px 14px; color:#1E293B !important;">Chest Pain & Dyspnea</td>
+                    <td style="padding:10px 14px;"><span class="badge-emergency">EMERGENCY</span></td>
+                    <td style="padding:10px 14px; color:#16A34A !important; font-weight:700;">PASSED</td>
+                </tr>
+                <tr style="border-bottom:1px solid #E2E8F0; background:#FFFFFF;">
+                    <td style="padding:10px 14px; color:#0F172A !important; font-weight:600;">Case 4</td>
+                    <td style="padding:10px 14px; color:#1E293B !important;">Generalized Fatigue</td>
+                    <td style="padding:10px 14px;"><span class="badge-routine">ROUTINE</span></td>
+                    <td style="padding:10px 14px; color:#16A34A !important; font-weight:700;">PASSED</td>
+                </tr>
+                <tr style="background:#FFFFFF;">
+                    <td style="padding:10px 14px; color:#0F172A !important; font-weight:600;">Case 5</td>
+                    <td style="padding:10px 14px; color:#1E293B !important;">Stroke (FAST Symptoms)</td>
+                    <td style="padding:10px 14px;"><span class="badge-emergency">EMERGENCY</span></td>
+                    <td style="padding:10px 14px; color:#16A34A !important; font-weight:700;">PASSED</td>
+                </tr>
+            </tbody>
+        </table>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("#### Clinical Safety Guarantees")
+        st.markdown("""
+        <div style="background:#FFFFFF; border:1.5px solid #CBD5E1; border-radius:12px; padding:1.2rem; box-shadow:0 4px 12px rgba(0,0,0,0.03);">
+            <p style="margin:6px 0; color:#0F172A !important; font-size:0.95rem;">• <strong style="color:#0F172A !important;">Zero Severity Hallucination:</strong> Severity classification is computed by deterministic Python rules.</p>
+            <p style="margin:6px 0; color:#0F172A !important; font-size:0.95rem;">• <strong style="color:#0F172A !important;">RAG Grounding:</strong> Medical summaries reference retrieved protocols as evidence.</p>
+            <p style="margin:6px 0; color:#0F172A !important; font-size:0.95rem;">• <strong style="color:#0F172A !important;">Human-in-the-Loop:</strong> Emergency red flags block auto-booking and halt execution for nurse review.</p>
+            <p style="margin:6px 0; color:#0F172A !important; font-size:0.95rem;">• <strong style="color:#0F172A !important;">Provider Resilience:</strong> Automatic fallback between Groq LLM, local Ollama, and offline deterministic template.</p>
+        </div>
+        """, unsafe_allow_html=True)

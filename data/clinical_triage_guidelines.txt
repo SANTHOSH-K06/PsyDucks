@@ -1,0 +1,69 @@
+[PROTOCOL-101]
+Title: Acute Chest Pain and Respiratory Distress
+Keywords: chest pain, crushing chest pressure, difficulty breathing, shortness of breath, severe dyspnea, radiating pain to left arm or jaw, sweating, cyanosis
+Category: EMERGENCY
+Description: Severe acute presentation involving cardiovascular or severe respiratory compromise.
+Action: Immediate escalation to emergency services or emergency clinical nurse review. Do not delay care for routine appointment booking. Continuous monitoring required.
+
+[PROTOCOL-102]
+Title: Acute Neurological Deficits and Stroke Symptoms
+Keywords: facial drooping, sudden arm weakness, slurred speech, sudden confusion, vision loss, sudden severe headache, numbness on one side
+Category: EMERGENCY
+Description: Suspected acute stroke or critical neurological event (FAST protocol).
+Action: Emergency protocol activated. Immediate human nurse and clinical physician triage. Transport to nearest stroke center.
+
+[PROTOCOL-103]
+Title: Severe Uncontrolled Bleeding and Major Trauma
+Keywords: heavy bleeding, severe laceration, arterial spurt, uncontrollable hemorrhage, deep wound, severe head trauma, loss of consciousness
+Category: EMERGENCY
+Description: Massive blood loss or severe traumatic injury with hemodynamic instability risk.
+Action: Apply direct pressure, activate emergency triage team, initiate urgent trauma intervention.
+
+[PROTOCOL-201]
+Title: Persistent High Fever and Suspected Systemic Infection
+Keywords: persistent high fever, high fever for several days, fever over 103F, chills, rigors, productive cough with colored sputum, lethargy
+Category: URGENT
+Description: Prolonged or high-grade fever indicating potential bacterial infection, pneumonia, or systemic condition requiring prompt medical evaluation within 12-24 hours.
+Action: Schedule same-day or priority urgent clinic evaluation. Advise patient on hydration and antipyretics while awaiting evaluation.
+
+[PROTOCOL-202]
+Title: Moderate to Severe Acute Abdominal Pain
+Keywords: severe abdominal pain, sharp stomach cramps, localized right lower quadrant pain, persistent vomiting, inability to keep fluids down, blood in stool
+Category: URGENT
+Description: Acute abdomen symptoms that may indicate appendicitis, cholecystitis, or severe gastroenteritis requiring clinical assessment within 24 hours.
+Action: Priority urgent clinic appointment booking within 12-24 hours. Instruct patient to refrain from solid foods and seek emergency care if pain intensifies.
+
+[PROTOCOL-203]
+Title: Suspected Fracture or Moderate Musculoskeletal Injury
+Keywords: severe joint swelling, inability to bear weight, severe ankle sprain, suspected wrist fracture, acute localized deformity, intense bone pain
+Category: URGENT
+Description: Moderate trauma with functional impairment requiring physical examination and X-ray imaging.
+Action: Book same-day or next-day urgent orthopedic/urgent care appointment. RICE (Rest, Ice, Compression, Elevation) guidance.
+
+[PROTOCOL-301]
+Title: Mild Upper Respiratory Infection and Common Cold
+Keywords: mild cough, dry cough, runny nose, congestion, mild sore throat, sneezing, low grade fever for two days, clear nasal discharge
+Category: ROUTINE
+Description: Typical viral upper respiratory tract infection without respiratory distress, wheezing, or high persistent fever.
+Action: Schedule routine standard clinic consultation or telehealth visit within 2-5 days. Provide symptomatic self-care and hydration guidelines.
+
+[PROTOCOL-302]
+Title: Minor Localized Skin Rash and Mild Dermatitis
+Keywords: mild skin rash, itchy red patch, localized hives, mild eczema flare, contact dermatitis, insect bite without anaphylaxis
+Category: ROUTINE
+Description: Superficial, non-spreading dermatological complaints without systemic signs (no facial swelling, wheezing, or fever).
+Action: Book routine outpatient dermatology or general practice consultation.
+
+[PROTOCOL-303]
+Title: Mild Tension Headache and General Fatigue
+Keywords: mild headache, dull forehead ache, tension headache, stress fatigue, poor sleep, mild neck stiffness without fever
+Category: ROUTINE
+Description: Chronic or episodic mild headache without red-flag neurological symptoms (no sudden onset thunderclap, vision changes, or motor weakness).
+Action: Book routine primary care appointment. Recommend hydration, rest, and OTC analgesics as appropriate.
+
+[PROTOCOL-304]
+Title: Chronic Condition Follow-up and Prescription Refill
+Keywords: blood pressure check, medication refill, diabetes routine check, routine lab work follow-up, annual wellness exam
+Category: ROUTINE
+Description: Stable chronic disease monitoring and routine preventive health management.
+Action: Schedule standard routine outpatient visit.
