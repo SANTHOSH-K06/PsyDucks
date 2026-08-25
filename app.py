@@ -532,12 +532,12 @@ st.markdown("""
 
 
 
-# Main Navigation Tabs - Emoji Free
+# Main Navigation Tabs with Icons
 tab_triage, tab_nurse, tab_protocols, tab_architecture = st.tabs([
-    "Patient Intake & Live Triage",
-    f"Nurse Review Portal ({len(st.session_state.nurse_queue)} Pending)",
-    "Clinical Guidelines Explorer",
-    "System Architecture & Evaluation"
+    "🩺 Patient Intake & Live Triage",
+    f"👩‍⚕️ Nurse Review Portal ({len(st.session_state.nurse_queue)} Pending)",
+    "📖 Clinical Guidelines Explorer",
+    "📐 System Architecture & Evaluation"
 ])
 
 
