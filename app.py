@@ -93,8 +93,45 @@ st.markdown("""
         border-radius: 8px !important;
     }
 
-    /* Sliders & Dropdown Selectboxes High Contrast */
-    .stSlider *, div[data-testid="stSlider"] *, div[data-baseweb="select"] *, div[role="listbox"] * {
+    /* Dropdown Selectboxes & Popover Menu High-Contrast Fix */
+    div[data-baseweb="select"] {
+        background-color: #FFFFFF !important;
+        border-radius: 8px !important;
+    }
+    
+    div[data-baseweb="select"] * {
+        color: #0F172A !important;
+        font-weight: 600 !important;
+    }
+
+    div[data-baseweb="popover"], 
+    div[data-baseweb="popover"] *,
+    div[data-baseweb="menu"],
+    div[data-baseweb="menu"] *,
+    ul[role="listbox"], 
+    ul[role="listbox"] *,
+    li[role="option"] {
+        background-color: #FFFFFF !important;
+        background: #FFFFFF !important;
+        color: #0F172A !important;
+        font-weight: 600 !important;
+    }
+
+    li[role="option"]:hover, 
+    li[role="option"][aria-selected="true"],
+    div[data-baseweb="menu"] li:hover {
+        background-color: #F1F5F9 !important;
+        background: #F1F5F9 !important;
+    }
+    
+    li[role="option"]:hover *, 
+    li[role="option"][aria-selected="true"] * {
+        color: #0D9488 !important;
+        font-weight: 700 !important;
+    }
+
+    /* Sliders High Contrast */
+    .stSlider *, div[data-testid="stSlider"] * {
         color: #0F172A !important;
         font-weight: 600 !important;
     }
