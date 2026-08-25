@@ -1033,24 +1033,24 @@ with tab_architecture:
         st.markdown("""
         <div style="background:#FFFFFF; border:1.5px solid #CBD5E1; border-radius:16px; padding:1.4rem; box-shadow:0 6px 18px rgba(15, 23, 42, 0.05);">
             <div style="border-left:5px solid #0284C7; padding-left:14px; margin-bottom:14px;">
-                <strong style="color:#0284C7 !important; font-size:1.05rem;">Layer 1: User Intake & Input Vectorization</strong><br>
-                <span style="color:#1E293B !important; font-size:0.92rem;">Patient presents symptoms, age, and duration. Input text is tokenized.</span>
+                <strong style="color:#0F172A !important; font-weight:800; font-size:1.05rem;">Layer 1: User Intake & Input Vectorization</strong><br>
+                <span style="color:#334155 !important; font-size:0.92rem; font-weight:500;">Patient presents symptoms, age, and duration. Input text is tokenized.</span>
             </div>
             <div style="border-left:5px solid #0D9488; padding-left:14px; margin-bottom:14px;">
-                <strong style="color:#0D9488 !important; font-size:1.05rem;">Layer 2: RAG Protocol Retrieval (TF-IDF & Cosine Similarity)</strong><br>
-                <span style="color:#1E293B !important; font-size:0.92rem;">Extracts ground-truth clinical guidelines from dataset and calculates match confidence.</span>
+                <strong style="color:#0F172A !important; font-weight:800; font-size:1.05rem;">Layer 2: RAG Protocol Retrieval (TF-IDF & Cosine Similarity)</strong><br>
+                <span style="color:#334155 !important; font-size:0.92rem; font-weight:500;">Extracts ground-truth clinical guidelines from dataset and calculates match confidence.</span>
             </div>
             <div style="border-left:5px solid #D97706; padding-left:14px; margin-bottom:14px;">
-                <strong style="color:#D97706 !important; font-size:1.05rem;">Layer 3: Deterministic Severity Rule Engine</strong><br>
-                <span style="color:#1E293B !important; font-size:0.92rem;">Classifies case into ROUTINE, URGENT, or EMERGENCY without LLM hallucination.</span>
+                <strong style="color:#0F172A !important; font-weight:800; font-size:1.05rem;">Layer 3: Deterministic Severity Rule Engine</strong><br>
+                <span style="color:#334155 !important; font-size:0.92rem; font-weight:500;">Classifies case into ROUTINE, URGENT, or EMERGENCY without LLM hallucination.</span>
             </div>
             <div style="border-left:5px solid #DC2626; padding-left:14px; margin-bottom:14px;">
-                <strong style="color:#DC2626 !important; font-size:1.05rem;">Layer 4: LangGraph Routing & Human-in-the-Loop Gate</strong><br>
-                <span style="color:#1E293B !important; font-size:0.92rem;">Auto-books ROUTINE/URGENT cases. Halts and escalates EMERGENCY cases to Nurse Portal.</span>
+                <strong style="color:#0F172A !important; font-weight:800; font-size:1.05rem;">Layer 4: LangGraph Routing & Human-in-the-Loop Gate</strong><br>
+                <span style="color:#334155 !important; font-size:0.92rem; font-weight:500;">Auto-books ROUTINE/URGENT cases. Halts and escalates EMERGENCY cases to Nurse Portal.</span>
             </div>
             <div style="border-left:5px solid #7C3AED; padding-left:14px;">
-                <strong style="color:#7C3AED !important; font-size:1.05rem;">Layer 5: Provider-Routed LLM Grounded Summary</strong><br>
-                <span style="color:#1E293B !important; font-size:0.92rem;">Synthesizes care instructions via Groq / Ollama / Fallback strictly grounded on evidence.</span>
+                <strong style="color:#0F172A !important; font-weight:800; font-size:1.05rem;">Layer 5: Provider-Routed LLM Grounded Summary</strong><br>
+                <span style="color:#334155 !important; font-size:0.92rem; font-weight:500;">Synthesizes care instructions via Groq / Ollama / Fallback strictly grounded on evidence.</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
