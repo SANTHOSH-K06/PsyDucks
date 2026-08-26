@@ -934,7 +934,6 @@ with tab_triage:
             st.info(res["llm_summary"])
             
             # Clinical Summary Download Button (No Emojis)
-            score_val = res['retrieval_score']
             p_name_val = res['patient_name']
             p_age_val = res['age']
             p_sym_val = res['symptoms_text']
@@ -947,7 +946,6 @@ with tab_triage:
             p_stat_val = res['final_status']
             p_sum_val = res['llm_summary']
             
-            formatted_score = f"{score_val:.4f}"
             now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
             report_text = f"""=====================================================
@@ -964,7 +962,6 @@ Assessed Severity : {p_sev_val}
 Rule Applied      : {p_rule_val}
 Rule Rationale    : {p_reas_val}
 Matched Protocol  : [{p_pid_val}] {p_ptitle_val}
-RAG Match Score   : {formatted_score}
 -----------------------------------------------------
 FINAL DISPOSITION
 Status            : {p_stat_val}
