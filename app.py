@@ -877,16 +877,32 @@ with tab_triage:
 
             # Output Component: Digital Pass OR Emergency Banner (No Emojis)
             if sev == "EMERGENCY":
+                n_status = res.get("nurse_review_status", "PENDING")
+                n_action = res.get("nurse_action", "")
+                n_notes = res.get("nurse_notes", "")
+                
+                if n_status == "REVIEWED_BY_NURSE" or (n_action and n_action != "ESCALATE_TO_EMERGENCY_SERVICES"):
+                    status_badge = "<span class='badge-routine'>NURSE REVIEW COMPLETED</span>"
+                    status_msg = f"""
+                    <div style="background:rgba(255,255,255,0.9); padding:10px 14px; border-radius:10px; margin-top:8px; border:1px solid #6EE7B7;">
+                        <strong style="color:#064E3B !important;">Clinician Action Taken:</strong> {n_action}<br>
+                        <strong style="color:#064E3B !important;">Clinician Review Notes:</strong> {n_notes}
+                    </div>
+                    """
+                else:
+                    status_badge = "<span class='badge-emergency'>AWAITING NURSE REVIEW</span>"
+                    status_msg = "<p style='margin:6px 0; font-weight:600; color:#991B1B;'>Automated booking was blocked. Case has been queued in the <strong>Clinical Nurse Review Portal (Tab 2)</strong> for immediate emergency clinician evaluation.</p>"
+
                 st.markdown(f"""
                 <div class="emergency-banner">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <h4 style="margin:0; color:#991B1B;">EMERGENCY CLINICAL SAFETY INTERVENTION</h4>
-                        <span class="badge-emergency">HITL ACTIVE</span>
+                        {status_badge}
                     </div>
                     <hr style="border-top:1px solid #FCA5A5; margin:10px 0;">
                     <p style="margin:4px 0;"><strong>Patient:</strong> {res['patient_name']} (Age: {res['age']})</p>
                     <p style="margin:4px 0;"><strong>Trigger Protocol:</strong> <em>{res['matched_protocol_title']}</em></p>
-                    <p style="margin:6px 0; font-weight:600; color:#991B1B;">Automated booking was blocked. Case has been queued in the Clinical Nurse Review Portal for immediate emergency response.</p>
+                    {status_msg}
                 </div>
                 """, unsafe_allow_html=True)
             else:
@@ -1011,6 +1027,20 @@ with tab_nurse:
                     st.write("")
                     if st.button(f"Confirm Review", key=f"btn_confirm_{case['id']}", use_container_width=True, type="primary"):
                         st.success(f"Case {case['id']} ({case['patient_name']}) dispositioned: {nurse_act}")
+                        
+                        # Dynamically update the active patient session state so the patient sees the clinician's review in Tab 1
+                        if st.session_state.last_result and st.session_state.last_result.get("patient_name") == case['patient_name']:
+                            st.session_state.last_result["nurse_review_status"] = "REVIEWED_BY_NURSE"
+                            st.session_state.last_result["nurse_action"] = nurse_act
+                            st.session_state.last_result["nurse_notes"] = nurse_note
+                            st.session_state.last_result["llm_summary"] = (
+                                f"⚠️ CLINICIAN TRIAGE REVIEW COMPLETED FOR {case['patient_name'].upper()}:\n"
+                                f"• Action Taken: {nurse_act}\n"
+                                f"• Clinician Notes: {nurse_note}\n\n"
+                                f"Please follow the clinician's instructions immediately."
+                            )
+                            st.session_state.last_result["final_status"] = "NURSE_REVIEW_COMPLETED"
+
                         st.session_state.nurse_queue.pop(idx)
                         time.sleep(0.4)
                         st.rerun()
