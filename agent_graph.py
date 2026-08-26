@@ -13,10 +13,7 @@ from dotenv import load_dotenv
 from langgraph.graph import StateGraph, START, END
 
 # Project tools
-from tools import retrieve_triage_protocol, calculate_severity, book_appointment
-
-# Load environment variables
-load_dotenv()
+from tools import retrieve_triage_protocol, calculate_severity, book_appointment, predict_patient_readmission_risk
 
 
 # ==========================================
@@ -41,6 +38,9 @@ class TriageState(TypedDict):
     severity_reasoning: str
     rule_applied: str
     requires_human_review: bool
+    
+    # ML Readmission Risk Prediction
+    ml_readmission_risk: Optional[Dict[str, Any]]
     
     # Actions
     appointment_details: Optional[Dict[str, Any]]
@@ -170,11 +170,14 @@ def retrieve_protocol_node(state: TriageState) -> Dict[str, Any]:
 
 def calculate_severity_node(state: TriageState) -> Dict[str, Any]:
     """
-    Node 2: Applies transparent, deterministic clinical rules to evaluate severity.
+    Node 2: Applies transparent, deterministic clinical rules to evaluate severity
+    and computes ML Readmission Risk using the trained Random Forest model.
     """
     symptoms = state.get("symptoms_text", "")
     duration = state.get("duration_days", 1)
     category = state.get("protocol_category", "")
+    age = state.get("age", 45)
+    matched_title = state.get("matched_protocol_title", "General")
 
     severity_result = calculate_severity(
         symptoms_text=symptoms,
@@ -182,11 +185,19 @@ def calculate_severity_node(state: TriageState) -> Dict[str, Any]:
         matched_category=category
     )
 
+    # ML Model Prediction on Patient Dataset
+    ml_risk = predict_patient_readmission_risk(
+        age=age,
+        condition=matched_title,
+        length_of_stay=duration
+    )
+
     return {
         "severity_level": severity_result["severity_level"],
         "severity_reasoning": severity_result["reasoning"],
         "rule_applied": severity_result["rule_applied"],
-        "requires_human_review": severity_result["requires_human_review"]
+        "requires_human_review": severity_result["requires_human_review"],
+        "ml_readmission_risk": ml_risk
     }
 
 
@@ -331,6 +342,7 @@ def run_triage_agent(
         "severity_reasoning": "",
         "rule_applied": "",
         "requires_human_review": False,
+        "ml_readmission_risk": None,
         "appointment_details": None,
         "nurse_review_status": "PENDING",
         "nurse_action": nurse_action or "",
