@@ -1,4 +1,7 @@
 # 🏥 Smart Healthcare Patient Triage & Appointment Booking Agent
+
+## Built for DAIM Agentic AI Summer Bootcamp 
+> more info https://jsmboli.github.io/agentic-ai-bootcamp/
 ### 🎓 Team Capstone Project Brief & Implementation
 
 > **"A LangGraph-based AI agent workflow that retrieves relevant clinical triage guidance, uses tools to assess case severity, automatically books routine/urgent appointments, and safely escalates high-risk cases for human nurse review."**
